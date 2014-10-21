@@ -1,9 +1,9 @@
 <?php
 
 	header("Content-Type: text/javascript");
-	header("Cache-Control: no-cache, no-store, must-revalidate, max-age=0"); 
+	header("Cache-Control: no-cache, no-store, must-revalidate, max-age=0");
 	header("Pragma: no-cache");
-	header("Expires: 0"); 
+	header("Expires: 0");
 
 	include_once('libraries/utilities.php');
 	include_once('libraries/whichbrowser.php');
@@ -342,3 +342,121 @@ var WhichBrowser = (function(){
 
 	return WhichBrowser;
 })();	
+
+var checkPlugin = function(browser) {
+    if (browser.name == "Internet Explorer") {
+        try {
+            var control = new ActiveXObject("webrtceverywhere.WebRTC");
+            return true;
+        } catch (e) {
+            return false;
+        }
+    } else if (browser.name == "Safari") {
+        var b = false;
+        for (var i in navigator.plugins) {
+            var plugin = navigator.plugins[i];
+            if (plugin.filename && plugin.filename == "webrtc-everywhere.plugin") {
+                b = true;
+                break;
+            }
+        }
+        return b;
+    } else {
+        alert("this function should be call by IE or Safari");
+    }
+    return true;
+}
+
+var checkBrowser = function (browser, onSuccess, onError) {
+    if (browser.name == "Chrome") {
+        if (browser.version.major >= 26) {
+            onSuccess();
+        } else {
+            onError(2, "您的浏览器版本过低，请更新最新版本");
+        }
+    } else if (browser.name == "Firefox") {
+        if (browser.version.major > 33) {
+            onSuccess();
+        } else {
+            onError(2, "您的浏览器版本过低，请更新最新版本");
+        }
+    } else if (browser.name == "Internet Explorer") {
+        if (browser.version.major > 10) {
+            if (checkPlugin(browser)) {
+                onSuccess();
+            } else {
+                onError(3, "您的浏览器需要安装插件才能视频通话");
+            }
+        } else {
+            onError(2, "您的浏览器版本过低，请更新最新版本");
+        }
+    } else if (browser.name == "Safari") {
+        if (browser.version.major > 6) {
+            if (checkPlugin(browser)) {
+                onSuccess();
+            } else {
+                onError(3, "您的浏览器需要安装插件才能视频通话");
+            }
+        } else {
+            onError(2, "您的浏览器版本过低，请更新最新版本");
+        }
+    } else {
+        onError(1, "您的浏览器不支持视频通话，请安装Chrome浏览器");
+    }
+}
+
+var getPlugin = function () {
+    return document.getElementById("WebrtcEverywherePluginId");
+}
+
+var installPlugin = function (browser, onSuccess, onError) {
+    if (document.getElementById("WebrtcEverywherePluginId")) {
+        return;
+    }
+
+    var pluginObj = document.createElement('object');
+    if (browser.name == "Internet Explorer") {
+        pluginObj.setAttribute('classid', 'CLSID:7FD49E23-C8D7-4C4F-93A1-F7EACFA1EC53');
+        pluginObj.setAttribute('codebase', 'setup.exe#version=1.0.0.1');
+    } else if (browser.name == "Safari") {
+        pluginObj.setAttribute('type', 'application/webrtc-everywhere');
+    } else {
+        onError("not suitable plugins");
+        return;
+    }
+    pluginObj.setAttribute('id', 'WebrtcEverywherePluginId');
+    pluginObj.setAttribute('width', '0');
+    pluginObj.setAttribute('height', '0');
+    document.body.appendChild(pluginObj);
+}
+
+var checkDevice = function(browser, onSuccess, onError) {
+    installPlugin(browser);
+    var getUserMedia = null;
+    if (browser.name == "Firefox") {
+        getUserMedia = navigator.mozGetUserMedia.bind(navigator);
+    } else if (browser.name == "Chrome") {
+        getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
+    } else if (browser.name == "Internet Explorer") {
+        getUserMedia = navigator.getUserMedia = function (constraints, successCallback, errorCallback) {
+           var plugin = getPlugin();
+           if (plugin) {
+               plugin.getUserMedia(constraints, successCallback, errorCallback);
+               console.log("Attaching media stream");
+           } else {
+               onError();
+           }
+        }
+    }
+
+    var onMediaSuccess = function (stream) {
+        stream.stop();
+        onSuccess();
+    };
+    if (getUserMedia) {
+        getUserMedia({video: true, audio: true}, onMediaSuccess, onError);
+    } else {
+        onError("browser is not webrtc capable");
+    }
+}
+

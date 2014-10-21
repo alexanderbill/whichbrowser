@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Which browser?</title>	
+		<meta charset="UTF-8">
+		
+		<script>
+			(function(){var p=[],w=window,d=document,e=f=0;p.push('ua='+encodeURIComponent(navigator.userAgent));e|=w.ActiveXObject?1:0;e|=w.opera?2:0;e|=w.chrome?4:0;
+			e|='getBoxObjectFor' in d || 'mozInnerScreenX' in w?8:0;e|=('WebKitCSSMatrix' in w||'WebKitPoint' in w||'webkitStorageInfo' in w||'webkitURL' in w)?16:0;
+			e|=(e&16&&({}.toString).toString().indexOf("\n")===-1)?32:0;p.push('e='+e);f|='sandbox' in d.createElement('iframe')?1:0;f|='WebSocket' in w?2:0;
+			f|=w.Worker?4:0;f|=w.applicationCache?8:0;f|=w.history && history.pushState?16:0;f|=d.documentElement.webkitRequestFullScreen?32:0;f|='FileReader' in w?64:0;
+			p.push('f='+f);p.push('r='+Math.random().toString(36).substring(7));p.push('w='+screen.width);p.push('h='+screen.height);var s=d.createElement('script');
+			s.src='http://vchat.9961.cn:8090/whichbrowser/detect.php?' + p.join('&');d.getElementsByTagName('head')[0].appendChild(s);})();
+		</script>
+		
+		<style>
+		
+			html {
+				font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Helvetica", "Arial", "Lucida Grande", sans-serif;
+				font-size: 1.1em;
+			}
+
+			body {
+				background: #d9d9d9;
+				text-align: center;
+			}
+			
+			#container {
+				background: #fff;
+				width: 70%;
+				margin: 100px auto 50px;
+				padding: 30px;
+				font-size: 3em;
+			}
+			
+			#container small {
+				display: block;
+				margin-top: 2em;
+				font-size: 0.3em;
+				line-height: 150%;
+			}
+
+			a {
+				color: #0092bf;
+				text-decoration: none;
+			}
+			
+			a:hover {
+				text-decoration: underline;
+			}
+
+		
+		</style>
+	</head>
+	
+	<body>
+		<div id='container'><img src="call.gif"></div>
+
+		<script>
+
+			function waitForWhichBrowser(cb) {
+				var callback = cb;
+				
+				function wait() {
+					if (typeof WhichBrowser == 'undefined') 
+						window.setTimeout(wait, 100)
+					else 
+						callback();
+				}
+				
+				wait();
+			}
+
+
+			waitForWhichBrowser(function() {
+				try {
+					Browsers = new WhichBrowser({
+						useFeatures:		true,
+						detectCamouflage:	true
+					});
+					var onSuccess = function(stream) {
+						console.log("====success");
+					}
+					var onError = function(errorCode, message) {
+						console.log("====fail " + errorCode + " " + message);
+					}
+					checkDevice(Browsers.browser, onSuccess, onError);
+				} catch (e) {
+				}
+			});
+			
+		</script>
+	</body>
+</html>
