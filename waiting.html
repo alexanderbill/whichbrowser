@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Which browser?</title>
+		<meta charset="UTF-8">
+
+		<style>
+
+			html {
+				font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Helvetica", "Arial", "Lucida Grande", sans-serif;
+				font-size: 1.1em;
+			}
+
+			body {
+				background: #d9d9d9;
+				text-align: center;
+			}
+
+			#container {
+				background: #fff;
+				font-size: 3em;
+			}
+
+			#container small {
+				display: block;
+				margin-top: 2em;
+				font-size: 0.3em;
+				line-height: 150%;
+			}
+
+			a {
+				color: #0092bf;
+				text-decoration: none;
+			}
+
+			a:hover {
+				text-decoration: underline;
+			}
+
+
+		</style>
+	</head>
+
+	<body>
+		<div id='container'><img src="call.gif"></div>
+
+        <script>
+            var getPlugin = function () {
+                return document.getElementById("WebrtcEverywherePluginId");
+            }
+
+            var installPlugin = function (name, onSuccess, onError) {
+                if (document.getElementById("WebrtcEverywherePluginId")) {
+                    return;
+                }
+
+                var pluginObj = document.createElement('object');
+                if (name == "Internet Explorer") {
+                    pluginObj.setAttribute('classid', 'CLSID:7FD49E23-C8D7-4C4F-93A1-F7EACFA1EC53');
+                    pluginObj.setAttribute('codebase', 'setup.exe#version=1.0.0.1');
+                } else if (name == "Safari") {
+                    pluginObj.setAttribute('type', 'application/webrtc-everywhere');
+                } else {
+                    onError("not suitable plugins");
+                    return;
+                }
+                pluginObj.setAttribute('id', 'WebrtcEverywherePluginId');
+                pluginObj.setAttribute('width', '0');
+                pluginObj.setAttribute('height', '0');
+                document.body.appendChild(pluginObj);
+            }
+
+            var checkDevice = function(name, onSuccess, onError) {
+                name = unescape(name);
+				var getUserMedia = null;
+                if (name == "Firefox") {
+                    getUserMedia = navigator.mozGetUserMedia.bind(navigator);
+                } else if (name == "Chrome") {
+                    getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
+                } else if (name == "Internet Explorer") {
+                    installPlugin(name);
+                    getUserMedia = navigator.getUserMedia = function (constraints, successCallback, errorCallback) {
+                       var plugin = getPlugin();
+                       if (plugin) {
+                           plugin.getUserMedia(constraints, successCallback, errorCallback);
+                           console.log("Attaching media stream");
+                       } else {
+                           onError();
+                       }
+                    }
+                }
+
+                var onMediaSuccess = function (stream) {
+                    stream.stop();
+                    onSuccess();
+                };
+                if (getUserMedia) {
+                    getUserMedia({video: true, audio: true}, onMediaSuccess, onError);
+                } else {
+                    onError("browser is not webrtc capable");
+                }
+            };
+
+            function getQueryStringByName(name) {
+                var result = location.search.match(new RegExp("[\?\&]" + name + "=([^\&]+)", "i"));
+                if (result == null || result.length < 1) {
+                    return "";
+                }
+                return result[1];
+            }
+
+            try {
+                var onSuccess = function(stream) {
+                    parent.postMessage("checkdevice", "*");
+                }
+                var onError = function(errorCode, message) {
+                    parent.postMessage("checkdevicefail", "*");
+                }
+                checkDevice(getQueryStringByName("b"), onSuccess, onError);
+            } catch (e) {
+            };
+
+        </script>
+    </body>
+</html>
