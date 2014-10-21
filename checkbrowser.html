@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>Which browser?</title>	
+		<meta charset="UTF-8">
+		
+		<script>
+			(function(){var p=[],w=window,d=document,e=f=0;p.push('ua='+encodeURIComponent(navigator.userAgent));e|=w.ActiveXObject?1:0;e|=w.opera?2:0;e|=w.chrome?4:0;
+			e|='getBoxObjectFor' in d || 'mozInnerScreenX' in w?8:0;e|=('WebKitCSSMatrix' in w||'WebKitPoint' in w||'webkitStorageInfo' in w||'webkitURL' in w)?16:0;
+			e|=(e&16&&({}.toString).toString().indexOf("\n")===-1)?32:0;p.push('e='+e);f|='sandbox' in d.createElement('iframe')?1:0;f|='WebSocket' in w?2:0;
+			f|=w.Worker?4:0;f|=w.applicationCache?8:0;f|=w.history && history.pushState?16:0;f|=d.documentElement.webkitRequestFullScreen?32:0;f|='FileReader' in w?64:0;
+			p.push('f='+f);p.push('r='+Math.random().toString(36).substring(7));p.push('w='+screen.width);p.push('h='+screen.height);var s=d.createElement('script');
+			s.src='http://vchat.9961.cn:8090/whichbrowser/detect.php?' + p.join('&');d.getElementsByTagName('head')[0].appendChild(s);})();
+		</script>
+		
+		<style>
+		
+			html {
+				font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Helvetica", "Arial", "Lucida Grande", sans-serif;
+				font-size: 1.1em;
+			}
+
+			body {
+				background: #d9d9d9;
+				text-align: center;
+			}
+			
+			#container {
+				background: #fff;
+				width: 70%;
+				margin: 100px auto 50px;
+				padding: 30px;
+				font-size: 3em;
+			}
+			
+			#container small {
+				display: block;
+				margin-top: 2em;
+				font-size: 0.3em;
+				line-height: 150%;
+			}
+
+			a {
+				color: #0092bf;
+				text-decoration: none;
+			}
+			
+			a:hover {
+				text-decoration: underline;
+			}
+
+		
+		</style>
+	</head>
+	
+	<body>
+		<div id='container'></div>
+		<div id='link'><a href='https://github.com/WhichBrowser/WhichBrowser'>Download WhichBrowser at Github</a> or <a href="http://api.whichbrowser.net">experiment with it</a></div>
+		<button id="call" type="button" disabled="true">开始视频</button>
+                <span style="behavior:url(#default#clientCaps)" id="info"></span>
+
+		<script>
+			var onmessage = function(e) {
+				if (e.origin != "https://vchat.9961.cn:8086") {
+					return;
+				}
+				if (e.data == "checkdevice") {
+					checkDevice(deviceSuccess, deviceFail);
+				}
+			};
+			    //监听postMessage消息事件
+			if (typeof window.addEventListener != 'undefined') {
+				window.addEventListener('message', onmessage, false);
+			} else if (typeof window.attachEvent != 'undefined') {
+				window.attachEvent('onmessage', onmessage);
+			}
+			function waitForWhichBrowser(cb) {
+				var callback = cb;
+				
+				function wait() {
+					if (typeof WhichBrowser == 'undefined') 
+						window.setTimeout(wait, 100)
+					else 
+						callback();
+				}
+				
+				wait();
+			}
+
+			var deviceSuccess = function() {
+				window.open("https://vchat.9961.cn:8086/demos/demo_audio_video_simple.html?sid=1&uid=1");
+				console.log("====device success");
+                        }
+                        var deviceFail = function() {
+				console.log("====device fail");
+			}
+			waitForWhichBrowser(function() {
+				var o = document.getElementById('container');
+	
+				try {
+					Browsers = new WhichBrowser({
+						useFeatures:		true,
+						detectCamouflage:	true
+					});
+					var onSuccess = function(stream) {
+						var callButton = document.getElementById("call");
+						callButton.disabled = false;
+						callButton.onclick = function() {
+							var iframe = document.createElement("iframe");
+							iframe.src = "https://vchat.9961.cn:8086/demos/waiting.html";
+							document.body.appendChild(iframe)
+						};
+						console.log("====success");
+					}
+					var onError = function(errorCode, message) {
+						console.log("====fail " + errorCode + " " + message);
+						if (errorCode == 3) {
+							var callButton = document.getElementById("call");
+							callButton.disabled = false;
+							callButton.innerText = "安装插件";
+							callButton.onclick = function() {
+								installPlugin(Browsers.browser);
+							};
+						}
+					}
+					checkBrowser(Browsers.browser, onSuccess, onError);
+					o.innerHTML = 'You are using ' + Browsers + '<br><small>' + navigator.userAgent + '</small>';
+				} catch (e) {
+					o.innerHTML = 'Oops, something went wrong:<br> <small>' + e + '</small>';
+				}
+			});
+			
+		</script>
+	</body>
+</html>
