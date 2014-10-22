@@ -369,12 +369,12 @@ var checkPlugin = function(browser) {
 
 var checkBrowser = function (browser, onSuccess, onError) {
     if (browser.name == "Chrome") {
-        if (browser.version.major >= 26) {
+        if (browser.version.major >= 26 && navigator.webkitGetUserMedia) {
             onSuccess();
         } else {
             onError(2, "您的浏览器版本过低，请更新最新版本");
         }
-    } else if (browser.name == "Firefox") {
+    } else if (browser.name == "Firefox" && navigator.mozGetUserMedia) {
         if (browser.version.major > 33) {
             onSuccess();
         } else {
