@@ -381,7 +381,7 @@ var checkBrowser = function (browser, onSuccess, onError) {
             onError(2, "您的浏览器版本过低，请更新最新版本");
         }
     } else if (browser.name == "Internet Explorer") {
-        if (browser.version.major > 10) {
+        if (browser.version.major > 7) {
             if (checkPlugin(browser)) {
                 onSuccess();
             } else {
@@ -431,13 +431,13 @@ var installPlugin = function (browser, onSuccess, onError) {
 }
 
 var checkDevice = function(browser, onSuccess, onError) {
-    installPlugin(browser);
     var getUserMedia = null;
     if (browser.name == "Firefox") {
         getUserMedia = navigator.mozGetUserMedia.bind(navigator);
     } else if (browser.name == "Chrome") {
         getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
     } else if (browser.name == "Internet Explorer") {
+        installPlugin(browser);
         getUserMedia = navigator.getUserMedia = function (constraints, successCallback, errorCallback) {
            var plugin = getPlugin();
            if (plugin) {
