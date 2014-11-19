@@ -344,14 +344,14 @@ var WhichBrowser = (function(){
 })();	
 
 var checkPlugin = function(browser) {
-    if (browser.name == "Internet Explorer") {
+    if (browser.feature == "Internet Explorer") {
         try {
             var control = new ActiveXObject("webrtceverywhere.WebRTC");
             return true;
         } catch (e) {
             return false;
         }
-    } else if (browser.name == "Safari") {
+    } else if (browser.feature == "Safari") {
         var b = false;
         for (var i in navigator.plugins) {
             var plugin = navigator.plugins[i];
@@ -368,19 +368,19 @@ var checkPlugin = function(browser) {
 }
 
 var checkBrowser = function (browser, onSuccess, onError) {
-    if (browser.name == "Chrome") {
+    if (navigator.webkitGetUserMedia) {
         if (browser.version.major >= 26) {
             onSuccess();
         } else {
             onError(2, "您的浏览器版本过低，请更新最新版本");
         }
-    } else if (browser.name == "Firefox") {
-        if (browser.version.major > 33) {
+    } else if (navigator.mozGetUserMedia) {
+        if (browser.version.major > 30) {
             onSuccess();
         } else {
             onError(2, "您的浏览器版本过低，请更新最新版本");
         }
-    } else if (browser.name == "Internet Explorer") {
+    } else if (browser.feature == "Internet Explorer") {
         if (browser.version.major > 7) {
             if (checkPlugin(browser)) {
                 onSuccess();
@@ -390,7 +390,7 @@ var checkBrowser = function (browser, onSuccess, onError) {
         } else {
             onError(2, "您的浏览器版本过低，请更新最新版本");
         }
-    } else if (browser.name == "Safari") {
+    } else if (browser.feature == "Safari") {
         if (browser.version.major > 6) {
             if (checkPlugin(browser)) {
                 onSuccess();
@@ -415,10 +415,10 @@ var installPlugin = function (browser, onSuccess, onError) {
     }
 
     var pluginObj = document.createElement('object');
-    if (browser.name == "Internet Explorer") {
+    if (browser.feature == "Internet Explorer") {
         pluginObj.setAttribute('classid', 'CLSID:7FD49E23-C8D7-4C4F-93A1-F7EACFA1EC53');
-        pluginObj.setAttribute('codebase', 'setup.exe#version=1.0.0.1');
-    } else if (browser.name == "Safari") {
+        pluginObj.setAttribute('codebase', 'http://vchat.9961.cn:8090/whichbrowser/setup.exe#version=1.0.0.1');
+    } else if (browser.feature == "Safari") {
         pluginObj.setAttribute('type', 'application/webrtc-everywhere');
     } else {
         onError("not suitable plugins");
@@ -432,11 +432,11 @@ var installPlugin = function (browser, onSuccess, onError) {
 
 var checkDevice = function(browser, onSuccess, onError) {
     var getUserMedia = null;
-    if (browser.name == "Firefox") {
+    if (navigator.mozGetUserMedia) {
         getUserMedia = navigator.mozGetUserMedia.bind(navigator);
-    } else if (browser.name == "Chrome") {
+    } else if (navigator.webkitGetUserMedia) {
         getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
-    } else if (browser.name == "Internet Explorer") {
+    } else if (browser.feature == "Internet Explorer") {
         installPlugin(browser);
         getUserMedia = navigator.getUserMedia = function (constraints, successCallback, errorCallback) {
            var plugin = getPlugin();
