@@ -343,15 +343,15 @@ var WhichBrowser = (function(){
 	return WhichBrowser;
 })();	
 
-var checkPlugin = function(browser) {
-    if (browser.feature == "Internet Explorer") {
+var checkPlugin = function(engine) {
+    if (engine.name == "Trident") {
         try {
             var control = new ActiveXObject("webrtceverywhere.WebRTC");
             return true;
         } catch (e) {
             return false;
         }
-    } else if (browser.feature == "Safari") {
+    } else if (engine.name == "Webkit") {
         var b = false;
         for (var i in navigator.plugins) {
             var plugin = navigator.plugins[i];
@@ -367,22 +367,25 @@ var checkPlugin = function(browser) {
     return true;
 }
 
-var checkBrowser = function (browser, onSuccess, onError) {
+var checkBrowser = function (engine, onSuccess, onError) {
+    var major = parseInt(engine.version.major);
+    var minor = parseInt(engine.version.minor);
     if (navigator.webkitGetUserMedia) {
-        if (browser.version.major >= 26) {
+        if (engine.name == "Blink" && (major > 537 ||
+            (major == 537 && minor >= 36))) {
             onSuccess();
         } else {
             onError(2, "您的浏览器版本过低，请更新最新版本");
         }
     } else if (navigator.mozGetUserMedia) {
-        if (browser.version.major > 30) {
+        if (engine.name == "Gecko" && major >= 24) {
             onSuccess();
         } else {
             onError(2, "您的浏览器版本过低，请更新最新版本");
         }
-    } else if (browser.feature == "Internet Explorer") {
-        if (browser.version.major > 7) {
-            if (checkPlugin(browser)) {
+    } else if (engine.name == "Trident") {
+        if (major >= 4) {
+            if (checkPlugin(engine)) {
                 onSuccess();
             } else {
                 onError(3, "您的浏览器需要安装插件才能视频通话");
@@ -390,9 +393,9 @@ var checkBrowser = function (browser, onSuccess, onError) {
         } else {
             onError(2, "您的浏览器版本过低，请更新最新版本");
         }
-    } else if (browser.feature == "Safari") {
-        if (browser.version.major > 6) {
-            if (checkPlugin(browser)) {
+    } else if (engine.name == "Webkit") {
+        if (major >= 534 ) {
+            if (checkPlugin(engine)) {
                 onSuccess();
             } else {
                 onError(3, "您的浏览器需要安装插件才能视频通话");
@@ -417,7 +420,7 @@ var installPlugin = function (browser, onSuccess, onError) {
     var pluginObj = document.createElement('object');
     if (browser.feature == "Internet Explorer") {
         pluginObj.setAttribute('classid', 'CLSID:7FD49E23-C8D7-4C4F-93A1-F7EACFA1EC53');
-        pluginObj.setAttribute('codebase', 'http://vchat.9961.cn:8090/whichbrowser/setup.exe#version=1.0.0.1');
+        pluginObj.setAttribute('codebase', 'http://media3.9961.cn/setup.exe#version=1.0.0.1');
     } else if (browser.feature == "Safari") {
         pluginObj.setAttribute('type', 'application/webrtc-everywhere');
     } else {
