@@ -432,34 +432,3 @@ var installPlugin = function (browser, onSuccess, onError) {
     pluginObj.setAttribute('height', '0');
     document.body.appendChild(pluginObj);
 }
-
-var checkDevice = function(browser, onSuccess, onError) {
-    var getUserMedia = null;
-    if (navigator.mozGetUserMedia) {
-        getUserMedia = navigator.mozGetUserMedia.bind(navigator);
-    } else if (navigator.webkitGetUserMedia) {
-        getUserMedia = navigator.webkitGetUserMedia.bind(navigator);
-    } else if (browser.feature == "Internet Explorer") {
-        installPlugin(browser);
-        getUserMedia = navigator.getUserMedia = function (constraints, successCallback, errorCallback) {
-           var plugin = getPlugin();
-           if (plugin) {
-               plugin.getUserMedia(constraints, successCallback, errorCallback);
-               console.log("Attaching media stream");
-           } else {
-               onError();
-           }
-        }
-    }
-
-    var onMediaSuccess = function (stream) {
-        stream.stop();
-        onSuccess();
-    };
-    if (getUserMedia) {
-        getUserMedia({video: true, audio: true}, onMediaSuccess, onError);
-    } else {
-        onError("browser is not webrtc capable");
-    }
-}
-
