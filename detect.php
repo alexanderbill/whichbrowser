@@ -343,10 +343,15 @@ var WhichBrowser = (function(){
 	return WhichBrowser;
 })();	
 
+var currentPluginVersion = "1.2.0"
+
 var checkPlugin = function(engine) {
     if (engine.name == "Trident") {
         try {
             var control = new ActiveXObject("webrtceverywhere.WebRTC");
+            if (control.versionName != currentPluginVersion) {
+                return false;
+            }
             return true;
         } catch (e) {
             return false;
@@ -412,16 +417,16 @@ var getPlugin = function () {
     return document.getElementById("WebrtcEverywherePluginId");
 }
 
-var installPlugin = function (browser, onSuccess, onError) {
+var installPlugin = function (engine, onSuccess, onError) {
     if (document.getElementById("WebrtcEverywherePluginId")) {
         return;
     }
 
     var pluginObj = document.createElement('object');
-    if (browser.feature == "Internet Explorer") {
+    if (engine.name == "Trident") {
         pluginObj.setAttribute('classid', 'CLSID:7FD49E23-C8D7-4C4F-93A1-F7EACFA1EC53');
         pluginObj.setAttribute('codebase', 'http://media3.9961.cn/setup.exe#version=1.0.0.1');
-    } else if (browser.feature == "Safari") {
+    } else if (engine.name == "Webkit") {
         pluginObj.setAttribute('type', 'application/webrtc-everywhere');
     } else {
         onError("not suitable plugins");
